@@ -40,8 +40,8 @@ return [
 ],
 
 'nocaptcha' => [
-    'sitekey' => env('6LcL24ErAAAAAJ05EytlGMTqlNlnrcVkLIkoZDMB'),
-    'secret' => env('6LcL24ErAAAAAKtitoBUz-qjCqdwSQe3slzgHfg5'),
+    'sitekey' => env('NOCAPTCHA_SITEKEY'),
+    'secret' => env('NOCAPTCHA_SECRET'),
 ],
 
 

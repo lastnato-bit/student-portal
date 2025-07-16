@@ -18,10 +18,10 @@ class SuperadminLogin extends Component
     // ✅ Listener for the Alpine + Livewire bridge
     protected $listeners = ['recaptchaCompleted' => 'setRecaptchaToken'];
 
-    public function setRecaptchaToken()
-{
-    $this->recaptchaToken = request()->input('components.0.calls.0.params.1.token', '');
-}
+   public function setRecaptchaToken($payload = [])
+    {
+        $this->recaptchaToken = $payload['token'] ?? '';
+    }
 
 
     public function login()

@@ -17,6 +17,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class SubjectResource extends Resource
 {

@@ -23,10 +23,10 @@ use App\Http\Controllers\AdminCalendarController;
 use App\Http\Controllers\Admin\GradeReportController;
 use App\Http\Controllers\Student\GradeController;
 use App\Http\Controllers\AnnouncementController;
+use App\Livewire\Student\Concerns;
 use App\Models\ClassSchedule;
 use App\Livewire\Superadmin\VerifyOtp;
 use App\Livewire\Auth\SuperadminLogin;
-
 
 // ✅ Landing Page
 Route::get('/', fn() => view('landing'))->name('landing');
@@ -38,7 +38,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/login/superadmin', \App\Livewire\Auth\SuperadminLogin::class)->name('login.superadmin');
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::get('/login', \App\Livewire\Auth\StudentLogin::class)->name('login');
-
 
     // ✅ Student Forgot Password (Fortify)
     Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
@@ -55,7 +54,6 @@ Route::middleware('guest')->group(function () {
     Route::post('/superadmin/verify-otp/{id}', [OtpVerificationController::class, 'verifyOtp'])->name('superadmin.verify-otp.verify');
 
     Route::get('/superadmin/verify-otp/{id}', VerifyOtp::class)->name('superadmin.verify-otp.form');
-
 
     Route::get('/superadmin/reset-password', [SuperadminResetController::class, 'showResetForm'])->name('superadmin.reset.form');
     Route::post('/superadmin/reset-password', [SuperadminResetController::class, 'submitReset'])->name('superadmin.reset.submit');
@@ -77,12 +75,10 @@ Route::middleware('guest')->group(function () {
     Route::resource('announcements', AnnouncementController::class);
 });
 
-// ✅ Profile Page
 // ✅ Profile Page (Protected)
 Route::middleware(['auth'])->group(function () {
     Route::get('/user/profile', [ProfileController::class, 'show'])->name('profile.show');
 });
-
 
 // ✅ Logout Routes
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->middleware('web')->name('logout');
@@ -163,6 +159,9 @@ Route::middleware([
 
         // ✅ Grade Report Download Button (PDF) — NEWLY ADDED
         Route::get('/grades/download', [GradeController::class, 'download'])->name('download-grades');
+
+        // ✅ FIXED: Concern Submission Page (moved to correct place)
+        Route::get('/concerns', Concerns::class)->name('concerns');
     });
 
     // ✅ Superadmin Routes (Requires 2FA)
@@ -184,8 +183,6 @@ Route::middleware([
     //Route::get('/holidays/create', [HolidayController::class, 'create'])->name('holidays.create');
     //Route::post('/holidays', [HolidayController::class, 'store'])->name('holidays.store');
 //});
-
-
 
 // ✅ Google Calendar Test Route
 use App\Services\GoogleCalendarService;

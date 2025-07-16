@@ -30,9 +30,13 @@ class AppServiceProvider extends ServiceProvider
             return redirect('/login/superadmin');
         })->name('filament.superadmin.auth.logout');
 
-        // ✅ CAPTCHA validation rule
-        Validator::extend('captcha', function ($attribute, $value, $parameters, $validator) {
-            return app(NoCaptcha::class)->verifyResponse($value);
-        });
+       Validator::extendImplicit('captcha', function ($attribute, $value, $parameters, $validator) {
+    return app(NoCaptcha::class)->verifyResponse($value);
+});
+
+if (file_exists(app_path('Helpers/helpers.php'))) {
+        require_once app_path('Helpers/helpers.php');
+    }
+
     }
 }

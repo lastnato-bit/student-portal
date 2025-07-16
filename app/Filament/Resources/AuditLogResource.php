@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Models\User;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -11,6 +10,7 @@ use Filament\Tables\Table;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class AuditLogResource extends Resource
 {
@@ -34,10 +34,16 @@ class AuditLogResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('causer.name')
+                Tables\Columns\TextColumn::make('causer.full_name')
                     ->label('Performed By')
                     ->sortable()
-                    ->searchable(),
+                    ->formatStateUsing(function ($state, $record) {
+                        $user = $record->causer;
+                        if ($user) {
+                            return trim("{$user->firstname} {$user->middlename} {$user->lastname}");
+                        }
+                        return '-';
+                    }),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Timestamp')
@@ -54,15 +60,31 @@ class AuditLogResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
-        $query = static::getModel()::query()->latest();
+        // ✅ Ensure 'causer' is eager loaded
+        $query = static::getModel()::query()
+            ->with('causer')
+            ->latest();
 
         $user = Auth::user();
 
+        // ✅ Filter by department if admin
         if ($user->hasRole('admin')) {
-            return $query->whereHas('causer', function ($q) use ($user) {
+            $query->whereHas('causer', function ($q) use ($user) {
                 $q->where('department_id', $user->department_id);
+            });
+        }
+
+        // ✅ Enable search by action or causer name
+        if (request()->has('tableSearch') && $search = request('tableSearch')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhereHas('causer', function ($causerQuery) use ($search) {
+                      $causerQuery->where('firstname', 'like', "%{$search}%")
+                                  ->orWhere('middlename', 'like', "%{$search}%")
+                                  ->orWhere('lastname', 'like', "%{$search}%");
+                  });
             });
         }
 
@@ -73,8 +95,9 @@ class AuditLogResource extends Resource
     {
         return Auth::user()?->hasRole('admin');
     }
+
     public static function canView(Model $record): bool
-{
-    return auth()->user()?->hasRole('admin');
-}
+    {
+        return auth()->user()?->hasRole('admin');
+    }
 }

@@ -41,9 +41,10 @@
             {{ $student->department->name ?? 'N/A' }}
         </div>
         <div>
-            <span class="font-semibold">Course:</span>
-            {{ $student->course ?: 'N/A' }}
-        </div>
+    <span class="font-semibold">Course:</span>
+    {{ $student->course?->name ?? 'N/A' }}
+</div>
+
 
         <div>
             <span class="font-semibold">Year Level:</span>

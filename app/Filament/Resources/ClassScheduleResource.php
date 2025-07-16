@@ -22,6 +22,9 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
+// ✅ Import the helper
+use function getActiveAcademicPeriod;
+
 class ClassScheduleResource extends Resource
 {
     protected static ?string $model = ClassSchedule::class;
@@ -34,6 +37,7 @@ class ClassScheduleResource extends Resource
     {
         $user = Auth::user();
         $isSuperAdmin = $user->hasRole('superadmin');
+        $activePeriod = getActiveAcademicPeriod();
 
         return $form->schema([
             Select::make('department_id')
@@ -54,22 +58,22 @@ class ClassScheduleResource extends Resource
                 ->required(),
 
             Select::make('subject_id')
-    ->label('Subject')
-    ->required()
-    ->searchable()
-    ->options(function (callable $get) {
-        $courseId = $get('course_id');
-        if (!$courseId) return [];
-        return Subject::where('course_id', $courseId)->pluck('name', 'id');
-    })
-    ->reactive()
-    ->afterStateUpdated(function ($state, callable $set) {
-        $subject = \App\Models\Subject::find($state);
-        if ($subject) {
-            $set('units', $subject->units);
-            $set('course_id', $subject->course_id); // optional autofill
-        }
-    }),
+                ->label('Subject')
+                ->required()
+                ->searchable()
+                ->options(function (callable $get) {
+                    $courseId = $get('course_id');
+                    if (!$courseId) return [];
+                    return Subject::where('course_id', $courseId)->pluck('name', 'id');
+                })
+                ->reactive()
+                ->afterStateUpdated(function ($state, callable $set) {
+                    $subject = Subject::find($state);
+                    if ($subject) {
+                        $set('units', $subject->units);
+                        $set('course_id', $subject->course_id);
+                    }
+                }),
 
             Select::make('section_id')
                 ->label('Section')
@@ -95,11 +99,11 @@ class ClassScheduleResource extends Resource
                 ->required(),
 
             TextInput::make('units')
-    ->label('Units')
-    ->numeric()
-    ->required()
-    ->disabled() // because it’s auto-filled
-    ->dehydrated(),
+                ->label('Units')
+                ->numeric()
+                ->required()
+                ->disabled()
+                ->dehydrated(), // Ensure disabled field is still saved
 
             Select::make('day')->label('Day')->options([
                 'monday' => 'Monday',
@@ -113,13 +117,19 @@ class ClassScheduleResource extends Resource
             TimePicker::make('start_time')->required(),
             TimePicker::make('end_time')->required(),
             TextInput::make('room')->nullable(),
-            Select::make('semester')->options([
-                '1st' => '1st Semester',
-                '2nd' => '2nd Semester',
-                'summer' => 'Summer',
-            ])->required(),
 
-            TextInput::make('school_year')->placeholder('e.g., 2025-2026')->required(),
+            // ✅ Auto-filled academic period fields
+            Select::make('semester')
+                ->default($activePeriod?->semester)
+                ->disabled()
+                ->required()
+                ->dehydrated(),
+
+            TextInput::make('school_year')
+                ->default($activePeriod?->school_year)
+                ->disabled()
+                ->required()
+                ->dehydrated(),
         ]);
     }
 
@@ -160,7 +170,6 @@ class ClassScheduleResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $user = Auth::user();
-
         $query = static::getModel()::query()->with(['instructor', 'subject']);
 
         if ($user->hasRole('superadmin')) {
@@ -170,5 +179,24 @@ class ClassScheduleResource extends Resource
         return $query->whereHas('section', function ($q) use ($user) {
             $q->where('department_id', $user->department_id);
         });
+    }
+
+    // ✅ Save auto-filled school_year and semester even if disabled
+    public static function mutateFormDataBeforeCreate(array $data): array
+    {
+        $activePeriod = getActiveAcademicPeriod();
+        $data['school_year'] = $activePeriod?->school_year;
+        $data['semester'] = $activePeriod?->semester;
+
+        return $data;
+    }
+
+    public static function mutateFormDataBeforeSave(array $data): array
+    {
+        $activePeriod = getActiveAcademicPeriod();
+        $data['school_year'] = $activePeriod?->school_year;
+        $data['semester'] = $activePeriod?->semester;
+
+        return $data;
     }
 }

@@ -14,7 +14,7 @@
                 <div><strong>Email:</strong> {{ $student->user->email ?? 'N/A' }}</div>
                 <div><strong>Address:</strong> {{ $student->address ?? 'N/A' }}</div>
                 <div><strong>Department:</strong> {{ $student->department->name ?? 'N/A' }}</div>
-                <div><strong>Course:</strong> {{ $student->course ?? 'N/A' }}</div>
+                <div><strong>Course:</strong> {{ $student->course?->name ?? 'N/A' }}</div>
                 <div><strong>Year Level:</strong> {{ $student->year_level ?? 'N/A' }}</div>
                 <div><strong>Section:</strong> {{ $student->section->name ?? 'N/A' }}</div>
             </div>

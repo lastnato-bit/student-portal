@@ -33,5 +33,6 @@
                 Send Confirmation Link
             </button>
         </div>
+        
     </form>
 @endsection

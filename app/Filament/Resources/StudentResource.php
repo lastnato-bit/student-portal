@@ -27,6 +27,8 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\Action;
 use App\Filament\Resources\StudentResource\Pages\CreateStudent;
+use Filament\Forms\Get;
+use Filament\Forms\Components\BelongsToSelect;
 
 class StudentResource extends Resource
 {
@@ -35,115 +37,93 @@ class StudentResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-    {
-        return $form->schema([
-            TextInput::make('student_number')
-                ->label('Student Number')
-                ->required()
-                ->unique(ignoreRecord: true),
+{
+    return $form->schema([
+        TextInput::make('student_number')
+            ->label('Student Number')
+            ->required()
+            ->unique(ignoreRecord: true),
 
-            TextInput::make('lastname')->label('Last Name')->required(),
-            TextInput::make('firstname')->label('First Name')->required(),
-            TextInput::make('middlename')->label('Middle Name')->nullable(),
+        TextInput::make('lastname')->label('Last Name')->required(),
+        TextInput::make('firstname')->label('First Name')->required(),
+        TextInput::make('middlename')->label('Middle Name')->nullable(),
 
-            TextInput::make('email')
-                ->required()
-                ->email()
-                ->unique(ignoreRecord: true),
+        TextInput::make('email')
+            ->required()
+            ->email()
+            ->unique(ignoreRecord: true),
 
-            Select::make('department_id')
-                ->label('Department')
-                ->relationship('department', 'name')
-                ->default(fn () => auth()->user()?->department_id)
-                ->disabled(auth()->user()?->hasRole('admin'))
-                ->required(),
+        // ✅ Automatically selected for Admin, editable for Superadmin
+        BelongsToSelect::make('department_id')
+            ->label('Department')
+            ->relationship('department', 'name')
+            ->default(fn () => auth()->user()?->department_id)
+            ->disabled(auth()->user()?->hasRole('admin'))
+            ->required()
+            ->reactive(), // Needed for dynamic course loading
 
-            Select::make('section_id')
-                ->label('Section')
-                ->relationship('section', 'name'),
+        Select::make('section_id')
+            ->label('Section')
+            ->relationship('section', 'name'),
 
-            Select::make('gender')
-                ->label('Gender')
-                ->options([
-                    'Male' => 'Male',
-                    'Female' => 'Female',
-                    'Other' => 'Other',
-                    'Prefer not to say' => 'Prefer not to say',
-                ])
-                ->required(),
+        Select::make('gender')
+            ->label('Gender')
+            ->options([
+                'Male' => 'Male',
+                'Female' => 'Female',
+                'Other' => 'Other',
+                'Prefer not to say' => 'Prefer not to say',
+            ])
+            ->required(),
 
-            DatePicker::make('birthdate')->nullable(),
-            TextInput::make('contact_number')->nullable(),
-            TextInput::make('address')->nullable(),
+        DatePicker::make('birthdate')->nullable(),
+        TextInput::make('contact_number')->nullable(),
+        TextInput::make('address')->nullable(),
 
-            Select::make('course')
-                ->label('Course')
-                ->options(function () {
-                    $user = auth()->user();
+        // ✅ Shows courses only under selected department
+        Select::make('course_id')
+            ->label('Course')
+            ->options(function (Get $get) {
+                $departmentId = $get('department_id');
 
-                    if ($user->hasRole('superadmin')) {
-                        return [
-                            'BSCE' => 'Engineering - BS Civil Engineering',
-                            'BSEE' => 'Engineering - BS Electrical Engineering',
-                            'BSCPE' => 'Engineering - BS Computer Engineering',
-                            'BSIT' => 'Computer Studies - BS Information Technology',
-                            'BSCS' => 'Computer Studies - BS Computer Science',
-                            'BSIS' => 'Computer Studies - BS Information Systems',
-                        ];
-                    }
-
-                    if ($user->hasRole('admin')) {
-                        if ($user->department?->name === 'Engineering') {
-                            return [
-                                'BSCE' => 'Engineering - BS Civil Engineering',
-                                'BSEE' => 'Engineering - BS Electrical Engineering',
-                                'BSCPE' => 'Engineering - BS Computer Engineering',
-                            ];
-                        }
-
-                        if ($user->department?->name === 'College of Computer Studies') {
-                            return [
-                                'BSIT' => 'Computer Studies - BS Information Technology',
-                                'BSCS' => 'Computer Studies - BS Computer Science',
-                                'BSIS' => 'Computer Studies - BS Information Systems',
-                            ];
-                        }
-                    }
-
+                if (!$departmentId) {
                     return [];
-                })
-                ->required()
-                ->searchable()
-                ->native(false)
-                ->placeholder('Select a course'),
+                }
 
-            Select::make('year_level')
-                ->label('Year Level')
-                ->options([
-                    '1st Year' => '1st Year',
-                    '2nd Year' => '2nd Year',
-                    '3rd Year' => '3rd Year',
-                    '4th Year' => '4th Year',
-                    '5th Year' => '5th Year',
-                ])
-                ->required()
-                ->native(false)
-                ->placeholder('Select year level'),
+                return \App\Models\Course::where('department_id', $departmentId)
+                    ->pluck('name', 'id');
+            })
+            ->reactive()
+            ->required()
+            ->searchable()
+            ->placeholder('Select a course'),
 
-            Select::make('status')
-                ->label('Enrollment Status')
-                ->options([
-                    'pending' => 'Pending',
-                    'active' => 'Active',
-                    'inactive' => 'Inactive',
-                ])
-                ->default('pending')
-                ->required(),
+        Select::make('year_level')
+            ->label('Year Level')
+            ->options([
+                '1st Year' => '1st Year',
+                '2nd Year' => '2nd Year',
+                '3rd Year' => '3rd Year',
+                '4th Year' => '4th Year',
+                '5th Year' => '5th Year',
+            ])
+            ->required()
+            ->native(false)
+            ->placeholder('Select year level'),
 
-            Hidden::make('user_id'),
-        ]);
-    }
+        Select::make('status')
+            ->label('Enrollment Status')
+            ->options([
+                'pending' => 'Pending',
+                'active' => 'Active',
+                'inactive' => 'Inactive',
+            ])
+            ->default('pending')
+            ->required(),
 
+        Hidden::make('user_id'),
+    ]);
+}
     public static function table(Table $table): Table
     {
         return $table

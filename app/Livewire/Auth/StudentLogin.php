@@ -13,23 +13,21 @@ class StudentLogin extends Component
     public $email = '';
     public $password = '';
     public $remember = false;
-    public $recaptchaToken = ''; // ✅ This holds the reCAPTCHA token
+    public $recaptchaToken = '';
 
-    // ✅ Listener for the Alpine + Livewire bridge
     protected $listeners = ['recaptchaCompleted' => 'setRecaptchaToken'];
 
-    public function setRecaptchaToken()
-{
-    $this->recaptchaToken = request()->input('components.0.calls.0.params.1.token', '');
-}
-
+    public function setRecaptchaToken($payload = [])
+    {
+        $this->recaptchaToken = $payload['token'] ?? '';
+    }
 
     public function login()
     {
         $this->validate([
             'email' => 'required|email',
             'password' => 'required',
-            'recaptchaToken' => 'required|captcha', // ✅ validate correct field
+            'recaptchaToken' => 'required|captcha',
         ]);
 
         $user = User::where('email', $this->email)->first();
@@ -42,7 +40,7 @@ class StudentLogin extends Component
 
         if (! $user->hasRole('student')) {
             throw ValidationException::withMessages([
-                'email' => 'Only admin accounts can login here.',
+                'email' => 'Only student accounts can login here.',
             ]);
         }
 

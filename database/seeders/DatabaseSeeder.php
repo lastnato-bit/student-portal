@@ -3,21 +3,29 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Carbon;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call(RoleSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // ✅ Save the user to $superadmin
+        $superadmin = User::firstOrCreate(
+            ['email' => 'superadmin@example.com'],
+            [
+                'firstname' => 'Mark',
+                'lastname' => 'Onganiza',
+                'middlename' => 'B.',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => Carbon::now(),
+                'is_verified' => 1,
+            ]
+        );
+
+        $superadmin->assignRole('superadmin');
     }
 }

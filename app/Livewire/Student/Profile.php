@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Livewire\Student;
 
 use Livewire\Component;
@@ -13,18 +14,18 @@ class Profile extends Component
         $user = Auth::user();
 
         if ($user && $user->student) {
-            $this->student = $user->student->load(['section', 'department']);
+            $this->student = $user->student->load(['section', 'department', 'course']);
         }
     }
 
     public function render()
-{
-    $user = Auth::user();
-    $student = $user->student->load('section', 'department');
+    {
+        $user = Auth::user();
+        $student = $user->student->load(['section', 'department', 'course']);
 
-    return view('livewire.student.profile', [
-        'user' => $user,
-        'student' => $student,
-    ]);
-}
+        return view('livewire.student.profile', [
+            'user' => $user,
+            'student' => $student,
+        ]);
+    }
 }

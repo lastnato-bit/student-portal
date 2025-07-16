@@ -36,6 +36,9 @@
                     class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 Reset Password
             </button>
+            <a href="{{ route('login') }}" class="block text-sm text-center text-blue-600 hover:underline">
+                Back to Login
+            </a>
         </div>
     </form>
 @endsection

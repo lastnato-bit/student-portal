@@ -13,6 +13,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\Activitylog\LogOptions;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -23,6 +24,9 @@ class User extends Authenticatable
     use TwoFactorAuthenticatable;
     use HasRoles;
     use LogsActivity;
+    use SoftDeletes;
+
+    protected $dates = ['deleted_at'];
 
     /**
      * The attributes that are mass assignable.
@@ -88,10 +92,11 @@ class User extends Authenticatable
     /**
      * Relationship: User has one linked student (if applicable).
      */
-    public function student(): HasOne
-    {
-        return $this->hasOne(Student::class);
-    }
+    public function student()
+{
+    return $this->hasOne(\App\Models\Student::class);
+}
+
 
     /**
      * Relationship: User has many grades (if student).
@@ -134,6 +139,8 @@ public function classSchedules()
     // Get student record (has section_id), then get schedules for that section
     return $this->hasOne(Student::class, 'user_id')->with('section.classSchedules');
 }
+
+
 
 
 

@@ -25,6 +25,9 @@
         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
             Send Password Reset
         </button>
+        <a href="{{ route('login') }}" class="block text-sm text-center text-blue-600 hover:underline">
+                Back to Login
+            </a>
     </form>
 </div>
 @endsection

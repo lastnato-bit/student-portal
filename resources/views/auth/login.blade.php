@@ -40,22 +40,23 @@
         </div>
 
         {{-- ✅ Google reCAPTCHA --}}
-        <div class="mb-4" x-data x-init="
-            window.recaptchaCallback = function(token) {
-                console.log('Token from Google:', token); // ✅ Debugging line
-                Livewire.dispatch('recaptchaCompleted', { token });
-            };
-        ">
-            <div
-                class="g-recaptcha"
-                data-sitekey="{{ config('services.nocaptcha.sitekey') }}"
-                data-callback="recaptchaCallback"
-                wire:ignore>
-            </div>
-            @error('recaptchaToken')
-                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-            @enderror
-        </div>
+<div class="mb-4" x-data x-init="
+    window.recaptchaCallback = function(token) {
+        Livewire.find($root.closest('[wire\\:id]').getAttribute('wire:id'))
+                .call('setRecaptchaToken', { token: token });
+    };
+">
+
+    <div
+        class="g-recaptcha"
+        data-sitekey="{{ config('services.nocaptcha.sitekey') }}"
+        data-callback="recaptchaCallback"
+        wire:ignore>
+    </div>
+    @error('recaptchaToken')
+        <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+    @enderror
+</div>
 
         {{-- ✅ Forgot password --}}
         <div class="mb-6 text-right">

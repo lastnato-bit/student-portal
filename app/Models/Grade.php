@@ -8,12 +8,14 @@ use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 use App\Models\User;
 use App\Models\ClassSchedule;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Grade extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory, LogsActivity,SoftDeletes;
 
     protected $table = 'grades';
+    protected $dates = ['deleted_at'];
 
     protected $fillable = [
         'student_id',

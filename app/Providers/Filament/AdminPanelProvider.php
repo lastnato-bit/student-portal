@@ -42,11 +42,7 @@ class AdminPanelProvider extends PanelProvider
     ->sidebarFullyCollapsibleOnDesktop()
     ->brandName('Student Portal ')
 
-
     
-    
-
-
     ->colors([
         'primary' => \Filament\Support\Colors\Color::Fuchsia,
     ])

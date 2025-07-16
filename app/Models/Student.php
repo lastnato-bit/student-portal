@@ -13,6 +13,7 @@ use Spatie\Activitylog\LogOptions;
 class Student extends Model
 {
     use HasFactory, SoftDeletes, LogsActivity;
+    
 
     protected $fillable = [
         'student_number',
@@ -26,7 +27,7 @@ class Student extends Model
         'birthdate',
         'contact_number',
         'address',
-        'course',
+        'course_id',
         'year_level',
         'status',
         'user_id',
@@ -43,7 +44,7 @@ class Student extends Model
             ->logOnly([
                 'firstname', 'middlename', 'lastname',
                 'email', 'student_number', 'section_id',
-                'department_id', 'user_id', 'status'
+                'department_id','course_id', 'user_id', 'status'
             ])
             ->useLogName('student')
             ->logOnlyDirty();
@@ -51,10 +52,11 @@ class Student extends Model
 
     // Relationships
 
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
+    public function user()
+{
+    return $this->belongsTo(\App\Models\User::class);
+}
+
 
     public function grades(): HasMany
     {
@@ -70,6 +72,11 @@ class Student extends Model
     {
         return $this->belongsTo(Department::class);
     }
+    public function course()
+{
+    return $this->belongsTo(Course::class);
+}
+
 
     public function classSchedules()
 {
@@ -89,14 +96,7 @@ class Student extends Model
     /**
      * Automatically delete the linked user if student is deleted
      */
-    protected static function booted(): void
-    {
-        static::deleting(function ($student) {
-            if ($student->user) {
-                $student->user->delete();
-            }
-        });
-    }
+   
 
 
 }
