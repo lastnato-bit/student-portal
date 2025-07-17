@@ -62,42 +62,48 @@ class AuditLogResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        // ✅ Ensure 'causer' is eager loaded
-        $query = static::getModel()::query()
-            ->with('causer')
-            ->latest();
+        $query = static::getModel()::query()->with('causer')->latest();
 
         $user = Auth::user();
 
-        // ✅ Filter by department if admin
+        // ✅ Superadmin: see everything
+        if ($user->hasRole('superadmin')) {
+            return $query;
+        }
+
+        // ✅ Admin: only logs from their department
         if ($user->hasRole('admin')) {
-            $query->whereHas('causer', function ($q) use ($user) {
+            return $query->whereHas('causer', function ($q) use ($user) {
                 $q->where('department_id', $user->department_id);
             });
         }
 
-        // ✅ Enable search by action or causer name
-        if (request()->has('tableSearch') && $search = request('tableSearch')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('description', 'like', "%{$search}%")
-                  ->orWhereHas('causer', function ($causerQuery) use ($search) {
-                      $causerQuery->where('firstname', 'like', "%{$search}%")
-                                  ->orWhere('middlename', 'like', "%{$search}%")
-                                  ->orWhere('lastname', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        return $query;
+        // ✅ Student: only their own logs
+        return $query->where('causer_id', $user->id)
+                     ->where('causer_type', get_class($user));
     }
 
     public static function shouldRegisterNavigation(): bool
     {
-        return Auth::user()?->hasRole('admin');
+        return Auth::check() && (
+            Auth::user()->hasRole('superadmin') ||
+            Auth::user()->hasRole('admin') ||
+            Auth::user()->hasRole('student')
+        );
     }
 
     public static function canView(Model $record): bool
     {
-        return auth()->user()?->hasRole('admin');
+        $user = auth()->user();
+
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        if ($user->hasRole('admin')) {
+            return $record->causer?->department_id === $user->department_id;
+        }
+
+        return $record->causer_id === $user->id;
     }
 }

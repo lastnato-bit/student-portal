@@ -28,6 +28,7 @@ use App\Models\ClassSchedule;
 use App\Livewire\Superadmin\VerifyOtp;
 use App\Livewire\Auth\SuperadminLogin;
 
+
 // ✅ Landing Page
 Route::get('/', fn() => view('landing'))->name('landing');
 
@@ -36,7 +37,7 @@ Route::middleware('guest')->group(function () {
     // ✅ Custom Login Pages
     Route::get('/login/admin', \App\Livewire\Auth\AdminLogin::class)->name('login.admin');
     Route::get('/login/superadmin', \App\Livewire\Auth\SuperadminLogin::class)->name('login.superadmin');
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    //Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::get('/login', \App\Livewire\Auth\StudentLogin::class)->name('login');
 
     // ✅ Student Forgot Password (Fortify)
@@ -44,7 +45,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
     Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.update');
-    Route::get('/login/superadmin', SuperadminLogin::class)->name('superadmin.login');
+    //Route::get('/login/superadmin', SuperadminLogin::class)->name('superadmin.login');
 
     // ✅ Superadmin Forgot Password (OTP Only)
     Route::get('/superadmin/forgot-password', [SuperadminResetController::class, 'showRequestForm'])->name('superadmin.password.request');

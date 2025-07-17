@@ -8,5 +8,6 @@ use App\Models\User;
 
 class Activity extends SpatieActivity
 {
-    
+    // Optional: custom relationship to user
+   
 }

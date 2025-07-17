@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use Laravel\Fortify\Features;
 
 class AdminLogin extends Component
 {
@@ -18,7 +19,7 @@ class AdminLogin extends Component
     // ✅ Listener for the Alpine + Livewire bridge
     protected $listeners = ['recaptchaCompleted' => 'setRecaptchaToken'];
 
-   public function setRecaptchaToken($payload = [])
+    public function setRecaptchaToken($payload = [])
     {
         $this->recaptchaToken = $payload['token'] ?? '';
     }
@@ -43,6 +44,13 @@ class AdminLogin extends Component
             throw ValidationException::withMessages([
                 'email' => 'Only admin accounts can login here.',
             ]);
+        }
+
+        // ✅ Handle 2FA manually if enabled
+        if (Features::enabled(Features::twoFactorAuthentication()) && $user->two_factor_secret) {
+            Auth::logout();
+            session(['login.id' => $user->id]);
+            return redirect()->route('two-factor.login');
         }
 
         Auth::login($user, $this->remember);

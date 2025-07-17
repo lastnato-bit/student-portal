@@ -33,7 +33,6 @@ class FortifyServiceProvider extends ServiceProvider
             return new class implements PasswordResetResponseContract {
                 public function toResponse($request)
                 {
-                    // You may change this to any other role-based redirect
                     return redirect('/login/admin');
                 }
             };
@@ -49,34 +48,36 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
 
-        // ✅ Custom login view for students
+        // ✅ Custom login view
         Fortify::loginView(function () {
-            return view('auth.login'); // You control this view: /resources/views/auth/login.blade.php
+            return view('auth.login');
         });
 
-        // ✅ Authenticate only students with 'active' status
+        // ✅ Role-aware login with 2FA
         Fortify::authenticateUsing(function (Request $request) {
             $user = \App\Models\User::where('email', $request->email)->first();
 
-            // Check if user exists and password is valid
+            // ✅ Validate credentials
             if (! $user || ! Hash::check($request->password, $user->password)) {
                 return null;
             }
 
-            // Check if the user has the 'student' role
-            if (! $user->hasRole('student')) {
+            // 🔒 Students must be active
+            if ($user->hasRole('student') && $user->student?->status !== 'active') {
                 return null;
             }
 
-            // ✅ Check if student status is 'active'
-            if ($user->student?->status !== 'active') {
-                return null;
+            // 🔐 If 2FA is enabled and confirmed, redirect to challenge
+            if ($user->two_factor_secret && $user->two_factor_confirmed_at) {
+                session(['login.id' => $user->getKey()]);
+                return null; // Fortify will redirect to /two-factor-challenge
             }
 
+            // ✅ Login without 2FA
             return $user;
         });
 
-        // ✅ Rate limiters for security
+        // ✅ Rate limiters
         RateLimiter::for('login', function (Request $request) {
             $email = (string) $request->email;
             return Limit::perMinute(5)->by(Str::lower($email) . '|' . $request->ip());

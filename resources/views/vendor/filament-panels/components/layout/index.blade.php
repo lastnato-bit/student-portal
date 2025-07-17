@@ -36,7 +36,7 @@
                 {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::TOPBAR_BEFORE, scopes: $livewire?->getRenderHookScopes()) }}
 
                 {{-- 🔳 Toggle Button Only (No Branding) --}}
-                <div class="px-4 pt-4 lg:hidden">
+            {{-- <div class="px-4 pt-4 lg:hidden">
                     <button
                         x-on:click="$store.sidebar.toggle()"
                         class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
@@ -46,7 +46,7 @@
                             <path d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
                     </button>
-                </div>
+                </div>--}}
 
                 <x-filament-panels::topbar :navigation="$navigation" />
 

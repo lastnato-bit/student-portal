@@ -135,6 +135,8 @@ return [
          * !! Make sure this line is present !!
          */
         App\Providers\Filament\SuperadminPanelProvider::class,
+        App\Providers\FortifyServiceProvider::class,
+
 
     ],
 

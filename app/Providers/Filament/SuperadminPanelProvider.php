@@ -38,6 +38,7 @@ class SuperadminPanelProvider extends PanelProvider
             ->sidebarFullyCollapsibleOnDesktop()
             ->brandName('Student Portal')
             
+            
 
             // ✅ Custom logo and favicon (optional)
             ->brandLogo(fn () => view('components.custom-logo')) // <-- add your logo path here
